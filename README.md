@@ -1,3 +1,6 @@
+[![codecov](https://codecov.io/gh/gaetanBloch/stargazer/branch/main/graph/badge.svg?token=Je5WFXQwKM)](https://codecov.io/gh/gaetanBloch/stargazer)
+[![example workflow](https://github.com/gaetanBloch/stargazer/actions/workflows/github-actions.yml/badge.svg)](https://github.com/gaetanBloch/stargazer/actions)
+
 # stargazer Project
 
 This project uses Quarkus, the Supersonic Subatomic Java Framework.
