@@ -25,6 +25,31 @@ public final class StargazerService {
     }
 
     private Set<NeighbourRepoDto> doGetStarNeighbours(String user, String repo) {
-        return Set.of(new NeighbourRepoDto("foo", Set.of("bar", "baz")));
+        final var neighbourRepos = new LinkedHashMap<String, NeighbourRepoDto>();
+        final Set<Stargazer> stargazers = githubClient.getRepoStargazers(user, repo);
+        stargazers.forEach(stargazer -> addStarredRepos(stargazer, neighbourRepos));
+        return new LinkedHashSet<>(neighbourRepos.values());
+    }
+
+    private void addStarredRepos(
+            Stargazer stargazer,
+            Map<String, NeighbourRepoDto> neighbourRepos
+    ) {
+        final Set<Repo> starredRepos = githubClient.getUserStarredRepos(stargazer.login());
+        starredRepos.forEach(
+                starredRepo -> addStarredRepoInNeighbours(stargazer, starredRepo, neighbourRepos)
+        );
+    }
+
+    private void addStarredRepoInNeighbours(
+            Stargazer stargazer,
+            Repo starredRepo,
+            Map<String, NeighbourRepoDto> neighbourRepos
+    ) {
+        String repoFullName = starredRepo.full_name();
+        if (!neighbourRepos.containsKey(repoFullName)) {
+            neighbourRepos.put(repoFullName, new NeighbourRepoDto(repoFullName, new HashSet<>()));
+        }
+        neighbourRepos.get(repoFullName).stargazers().add(stargazer.login());
     }
 }
