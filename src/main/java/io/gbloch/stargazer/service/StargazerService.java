@@ -44,6 +44,8 @@ public final class StargazerService {
         stargazers.forEach(stargazer -> addStarredRepos(stargazer, neighbourRepos));
         // Do not put requested repository in the list of neighbours
         neighbourRepos.remove(repo);
+        // Improvement: We could re-order the Set with closest
+        // neighbours first (biggest number of stargazers)
         return new LinkedHashSet<>(neighbourRepos.values());
     }
 

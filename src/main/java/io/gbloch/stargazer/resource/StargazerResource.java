@@ -53,6 +53,8 @@ public final class StargazerResource {
             @Parameter(description = "Github user login") @PathParam("user") @NotNull String user,
             @Parameter(description = "Targeted repositiory") @PathParam("repo") @NotNull String repo
     ) {
+        // Improvement: The results could be paged
+        // Improvement: The number of neighbours could be limited
         try {
             return Response.status(200)
                     .entity(stargazerService.getStarNeighbours(user, repo))
