@@ -11,6 +11,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import lombok.RequiredArgsConstructor;
+import org.eclipse.microprofile.faulttolerance.Fallback;
+import org.eclipse.microprofile.faulttolerance.Retry;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 
@@ -19,10 +21,14 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 @Path("/api/v1")
 public final class StargazerResource {
 
+    static final String SERVICE_UNAVAILABLE_MESSAGE = "Error while accessing Github API";
+
     private final StargazerService stargazerService;
 
     @GET
     @Operation(summary = "Get the star neighbours of a repository")
+    @Retry(delay = 1000, maxRetries = 3)
+    @Fallback(fallbackMethod = "getStarNeighboursFallback")
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/{user}/{repo}/starneighbours")
     public Response getStarNeighbours(
@@ -36,6 +42,15 @@ public final class StargazerResource {
         } catch (NotFoundException e) {
             return new ErrorResponse(e).toResponse();
         }
+    }
+
+    /**
+     * @return Empty collection and 503 error when we couldn't reach the Github API after retry
+     */
+    private Response getStarNeighboursFallback(String user, String repo) {
+        return Response.status(Status.SERVICE_UNAVAILABLE)
+                .entity(new ErrorResponse(SERVICE_UNAVAILABLE_MESSAGE, Status.SERVICE_UNAVAILABLE))
+                .build();
     }
 
     private record ErrorResponse(String message, Status status) {
