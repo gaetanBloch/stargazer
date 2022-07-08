@@ -1,4 +1,4 @@
-package io.gbloch.stargazer;
+package io.gbloch.stargazer.resource;
 
 import static io.restassured.RestAssured.given;
 
