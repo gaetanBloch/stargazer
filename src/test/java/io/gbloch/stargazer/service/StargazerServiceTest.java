@@ -98,4 +98,22 @@ final class StargazerServiceTest {
         assertThat(neighbours.get(1).repo()).isEqualTo(TestUtils.REPO_STARGAZER.full_name());
         assertThat(neighbours.get(1).stargazers()).hasSize(1).contains(TestUtils.USER_GBLOCH.login());
     }
+
+    @Test
+    void should_notGetStarNeighbour_when_sameRequestedRepo() {
+        // Given
+        when(githubClient.getRepoStargazers(anyString(), anyString()))
+                .thenReturn(Set.of(TestUtils.USER_GBLOCH, TestUtils.USER_JD));
+        when(githubClient.getUserStarredRepos(anyString()))
+                .thenReturn(Set.of(TestUtils.REPO_MERGIFY))
+                .thenReturn(Set.of(TestUtils.REPO_MERGIFY));
+
+        // When
+        Set<NeighbourRepoDto> neighbours =
+                stargazerService.getStarNeighbours(
+                        TestUtils.USER_GBLOCH.login(), TestUtils.REPO_MERGIFY.full_name());
+
+        // Then
+        assertThat(neighbours).isEmpty();
+    }
 }

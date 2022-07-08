@@ -28,6 +28,8 @@ public final class StargazerService {
         final var neighbourRepos = new LinkedHashMap<String, NeighbourRepoDto>();
         final Set<Stargazer> stargazers = githubClient.getRepoStargazers(user, repo);
         stargazers.forEach(stargazer -> addStarredRepos(stargazer, neighbourRepos));
+        // Do not put requested repository in the list of neighbours
+        neighbourRepos.remove(repo);
         return new LinkedHashSet<>(neighbourRepos.values());
     }
 
