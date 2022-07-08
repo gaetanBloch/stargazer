@@ -1,5 +1,6 @@
 package io.gbloch.stargazer.resource;
 
+import io.gbloch.stargazer.service.StargazerService;
 import io.smallrye.common.constraint.NotNull;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -16,6 +17,8 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 @Path("/api/v1")
 public final class StargazerResource {
 
+    private final StargazerService stargazerService;
+
     @GET
     @Operation(summary = "Get the star neighbours of a repository")
     @Produces(MediaType.APPLICATION_JSON)
@@ -24,6 +27,6 @@ public final class StargazerResource {
             @PathParam("user") @NotNull String user,
             @PathParam("repo") @NotNull String repo
     ) {
-        return Response.status(200).build();
+        return Response.status(200).entity(stargazerService.getStarNeighbours(user, repo)).build();
     }
 }
