@@ -11,17 +11,31 @@ import java.util.Map;
 import java.util.Set;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import javax.ws.rs.NotFoundException;
+import javax.ws.rs.core.Response.Status;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
+import org.jboss.resteasy.reactive.ClientWebApplicationException;
 
 @ApplicationScoped
 public final class StargazerService {
+
+    public static final String NOT_FOUND_MESSAGE =
+            "The user [%s] or the repository [%s] could not be found";
 
     @Inject
     @RestClient
     GithubClient githubClient;
 
     public Set<NeighbourRepoDto> getStarNeighbours(String user, String repo) {
-        return doGetStarNeighbours(user, repo);
+        try {
+            return doGetStarNeighbours(user, repo);
+        } catch (ClientWebApplicationException e) {
+            // Handle Not found exception more elegantly
+            if (e.getResponse().getStatus() == Status.NOT_FOUND.getStatusCode()) {
+                throw new NotFoundException(String.format(NOT_FOUND_MESSAGE, user, repo));
+            }
+            throw e;
+        }
     }
 
     private Set<NeighbourRepoDto> doGetStarNeighbours(String user, String repo) {

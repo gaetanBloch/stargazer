@@ -1,7 +1,9 @@
 package io.gbloch.stargazer.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 
 import io.gbloch.stargazer.TestUtils;
@@ -13,11 +15,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import javax.inject.Inject;
+import javax.ws.rs.NotFoundException;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
+import org.jboss.resteasy.reactive.ClientWebApplicationException;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
 final class StargazerServiceTest {
+
     private static final String DUMMY_REPO = "foo";
 
     @InjectMock
@@ -44,17 +51,20 @@ final class StargazerServiceTest {
         // Given
         when(githubClient.getRepoStargazers(anyString(), anyString()))
                 .thenReturn(Set.of(TestUtils.USER_GBLOCH));
-        when(githubClient.getUserStarredRepos(anyString())).thenReturn(Set.of(TestUtils.REPO_MERGIFY));
+        when(githubClient.getUserStarredRepos(anyString())).thenReturn(
+                Set.of(TestUtils.REPO_MERGIFY));
 
         // When
         List<NeighbourRepoDto> neighbours =
                 new ArrayList<>(
-                        stargazerService.getStarNeighbours(TestUtils.USER_GBLOCH.login(), DUMMY_REPO));
+                        stargazerService.getStarNeighbours(TestUtils.USER_GBLOCH.login(),
+                                DUMMY_REPO));
 
         // Then
         assertThat(neighbours).hasSize(1);
         assertThat(neighbours.get(0).repo()).isEqualTo(TestUtils.REPO_MERGIFY.full_name());
-        assertThat(neighbours.get(0).stargazers()).hasSize(1).contains(TestUtils.USER_GBLOCH.login());
+        assertThat(neighbours.get(0).stargazers()).hasSize(1)
+                .contains(TestUtils.USER_GBLOCH.login());
     }
 
     @Test
@@ -69,7 +79,8 @@ final class StargazerServiceTest {
         // When
         List<NeighbourRepoDto> neighbours =
                 new ArrayList<>(
-                        stargazerService.getStarNeighbours(TestUtils.USER_GBLOCH.login(), DUMMY_REPO));
+                        stargazerService.getStarNeighbours(TestUtils.USER_GBLOCH.login(),
+                                DUMMY_REPO));
 
         // Then
         assertThat(neighbours).hasSize(1);
@@ -87,7 +98,8 @@ final class StargazerServiceTest {
         // When
         List<NeighbourRepoDto> neighbours =
                 new ArrayList<>(
-                        stargazerService.getStarNeighbours(TestUtils.USER_GBLOCH.login(), DUMMY_REPO));
+                        stargazerService.getStarNeighbours(TestUtils.USER_GBLOCH.login(),
+                                DUMMY_REPO));
 
         // Then
         assertThat(neighbours).hasSize(2);
@@ -96,7 +108,8 @@ final class StargazerServiceTest {
                 .hasSize(2)
                 .contains(TestUtils.USER_GBLOCH.login(), TestUtils.USER_JD.login());
         assertThat(neighbours.get(1).repo()).isEqualTo(TestUtils.REPO_STARGAZER.full_name());
-        assertThat(neighbours.get(1).stargazers()).hasSize(1).contains(TestUtils.USER_GBLOCH.login());
+        assertThat(neighbours.get(1).stargazers()).hasSize(1)
+                .contains(TestUtils.USER_GBLOCH.login());
     }
 
     @Test
@@ -115,5 +128,24 @@ final class StargazerServiceTest {
 
         // Then
         assertThat(neighbours).isEmpty();
+    }
+
+    @Test
+    void should_throwNotFoundException_when_userOrRepoIsNotFound() {
+        // Given
+        doThrow(new ClientWebApplicationException(Response.status(Status.NOT_FOUND).build()))
+                .when(githubClient)
+                .getRepoStargazers(anyString(), anyString());
+
+        // When Then
+        assertThatThrownBy(() -> stargazerService.getStarNeighbours(
+                TestUtils.USER_GBLOCH.login(),
+                TestUtils.REPO_MERGIFY.full_name()))
+                .isExactlyInstanceOf(NotFoundException.class)
+                .hasMessage(
+                        StargazerService.NOT_FOUND_MESSAGE,
+                        TestUtils.USER_GBLOCH.login(),
+                        TestUtils.REPO_MERGIFY.full_name()
+                );
     }
 }
