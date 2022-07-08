@@ -1,11 +1,12 @@
 [![Stargazer CI](https://github.com/gaetanBloch/stargazer/actions/workflows/github-actions.yml/badge.svg)](https://github.com/gaetanBloch/stargazer/actions)
 [![codecov](https://codecov.io/gh/gaetanBloch/stargazer/branch/main/graph/badge.svg?token=Je5WFXQwKM)](https://codecov.io/gh/gaetanBloch/stargazer)
-[![Mergify Status][https://img.shields.io/endpoint.svg?url=https://api.mergify.com/v1/badges/gaetanBloch/stargazer&style=flat]](https://mergify.com)
+[![Mergify Status](https://img.shields.io/endpoint.svg?url=https://api.mergify.com/v1/badges/gaetanBloch/stargazer&style=flat)](https://mergify.com)
 
 # Stargazer Project
 
 GitHub provides a features allowing a user to [save a repository with a star](https://docs.github.com/en/get-started/exploring-projects-on-github/saving-repositories-with-stars). Those users are called *stargazers.*
 ![Stars](https://i.imgur.com/J5VQ599.png)
+
 This feature is great for users to bookmark repositories. It is also quite interesting for maintainers  as they can know the number of people that are interested in their project.
 
 The more stars a repository gets, the more popular the project is! 🚀
@@ -23,7 +24,7 @@ GET api/v1/repos/<user>/<repo>/starneighbours
 ```
 This endpoint must return the list of neighbours repositories, meaning repositories where stargazers are found in common.
 The returned JSON format should look like:
-```json
+```jsx
 [
  {
    "repo": <repoA>,
