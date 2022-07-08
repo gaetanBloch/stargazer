@@ -1,5 +1,6 @@
 package io.gbloch.stargazer.resource;
 
+import io.gbloch.stargazer.dto.NeighbourRepoDto;
 import io.gbloch.stargazer.service.StargazerService;
 import io.smallrye.common.constraint.NotNull;
 import javax.ws.rs.GET;
@@ -14,6 +15,10 @@ import lombok.RequiredArgsConstructor;
 import org.eclipse.microprofile.faulttolerance.Fallback;
 import org.eclipse.microprofile.faulttolerance.Retry;
 import org.eclipse.microprofile.openapi.annotations.Operation;
+import org.eclipse.microprofile.openapi.annotations.media.Content;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
+import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 
 @Tag(name = "Starneighbours")
@@ -26,14 +31,27 @@ public final class StargazerResource {
     private final StargazerService stargazerService;
 
     @GET
-    @Operation(summary = "Get the star neighbours of a repository")
+    @Operation(
+            summary = "Get the star neighbours of a repository"
+    )
+    @APIResponse(
+            responseCode = "OK",
+            content = @Content(schema = @Schema(implementation = NeighbourRepoDto.class)))
+    @APIResponse(
+            responseCode = "NOT_FOUND",
+            description = "The user or the repository could not be found on Github",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    @APIResponse(
+            responseCode = "SERVICE_UNAVAILABLE",
+            description = "The Github API could not be reached",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     @Retry(delay = 1000, maxRetries = 3)
     @Fallback(fallbackMethod = "getStarNeighboursFallback")
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/{user}/{repo}/starneighbours")
     public Response getStarNeighbours(
-            @PathParam("user") @NotNull String user,
-            @PathParam("repo") @NotNull String repo
+            @Parameter(description = "Github user login") @PathParam("user") @NotNull String user,
+            @Parameter(description = "Targeted repositiory") @PathParam("repo") @NotNull String repo
     ) {
         try {
             return Response.status(200)
