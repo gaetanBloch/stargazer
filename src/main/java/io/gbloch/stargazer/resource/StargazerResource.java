@@ -76,7 +76,7 @@ public final class StargazerResource {
      */
     private Response getStarNeighboursFallback(String user, String repo) {
         return Response.status(Status.INTERNAL_SERVER_ERROR)
-                .entity(new ErrorResponse(INTERNAL_SERVER_ERROR_MESSAGE, Status.INTERNAL_SERVER_ERROR))
+                .entity(new ErrorResponse())
                 .build();
     }
 
