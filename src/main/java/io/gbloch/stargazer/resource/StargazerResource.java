@@ -82,7 +82,7 @@ public final class StargazerResource {
 
     private record ErrorResponse(String message, Status status) {
         public ErrorResponse() {
-            this("Internal Server Error", Status.INTERNAL_SERVER_ERROR);
+            this(INTERNAL_SERVER_ERROR_MESSAGE, Status.INTERNAL_SERVER_ERROR);
         }
 
         public ErrorResponse(NotFoundException e) {
