@@ -93,7 +93,7 @@ final class StargazerResourceTest {
     }
 
     @Test
-    void should_returnServiceUnavailable_when_errorIsThrownAfterAfterRetry() {
+    void should_returnServiceUnavailable_when_errorWebClientIsnotAvailable() {
         // Given
         doThrow(new ClientWebApplicationException())
                 .when(githubClient)
@@ -109,5 +109,24 @@ final class StargazerResourceTest {
                 .statusCode(503)
                 .body("message", equalTo(StargazerResource.SERVICE_UNAVAILABLE_MESSAGE))
                 .body("status", equalTo("SERVICE_UNAVAILABLE"));
+    }
+
+    @Test
+    void should_returnInternatServerError_when_errorIsThrownAfterAfterRetry() {
+        // Given
+        doThrow(new RuntimeException())
+                .when(githubClient)
+                .getRepoStargazers(anyString(), anyString());
+
+        // When Then
+        given()
+                .when()
+                // The URL needs to be valid but not the user and repo values because the client is
+                // mocked
+                .get("/api/v1/foo/bar/starneighbours")
+                .then()
+                .statusCode(500)
+                .body("message", equalTo(StargazerResource.INTERNAL_SERVER_ERROR_MESSAGE))
+                .body("status", equalTo("INTERNAL_SERVER_ERROR"));
     }
 }

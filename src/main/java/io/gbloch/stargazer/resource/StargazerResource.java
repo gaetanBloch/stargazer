@@ -20,6 +20,8 @@ import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
+import org.jboss.resteasy.reactive.ClientWebApplicationException;
+import org.jboss.resteasy.reactive.client.api.WebClientApplicationException;
 
 @Tag(name = "Starneighbours")
 @RequiredArgsConstructor
@@ -27,6 +29,7 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 public final class StargazerResource {
 
     static final String SERVICE_UNAVAILABLE_MESSAGE = "Error while accessing Github API";
+    static final String INTERNAL_SERVER_ERROR_MESSAGE = "Unexpected internal server error";
 
     private final StargazerService stargazerService;
 
@@ -46,7 +49,7 @@ public final class StargazerResource {
             description = "The Github API could not be reached",
             content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     @Retry(delay = 1000, maxRetries = 3)
-    @Fallback(fallbackMethod = "getStarNeighboursFallback")
+    @Fallback(fallbackMethod = "getStarNeighboursFallback", skipOn = ClientWebApplicationException.class)
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/{user}/{repo}/starneighbours")
     public Response getStarNeighbours(
@@ -61,6 +64,10 @@ public final class StargazerResource {
                     .build();
         } catch (NotFoundException e) {
             return new ErrorResponse(e).toResponse();
+        } catch (ClientWebApplicationException e) {
+             return Response.status(Status.SERVICE_UNAVAILABLE)
+                    .entity(new ErrorResponse(SERVICE_UNAVAILABLE_MESSAGE, Status.SERVICE_UNAVAILABLE))
+                    .build();
         }
     }
 
@@ -68,12 +75,15 @@ public final class StargazerResource {
      * @return Empty collection and 503 error when we couldn't reach the Github API after retry
      */
     private Response getStarNeighboursFallback(String user, String repo) {
-        return Response.status(Status.SERVICE_UNAVAILABLE)
-                .entity(new ErrorResponse(SERVICE_UNAVAILABLE_MESSAGE, Status.SERVICE_UNAVAILABLE))
+        return Response.status(Status.INTERNAL_SERVER_ERROR)
+                .entity(new ErrorResponse(INTERNAL_SERVER_ERROR_MESSAGE, Status.INTERNAL_SERVER_ERROR))
                 .build();
     }
 
     private record ErrorResponse(String message, Status status) {
+        public ErrorResponse() {
+            this("Internal Server Error", Status.INTERNAL_SERVER_ERROR);
+        }
 
         public ErrorResponse(NotFoundException e) {
             this(e.getMessage(), Status.NOT_FOUND);
