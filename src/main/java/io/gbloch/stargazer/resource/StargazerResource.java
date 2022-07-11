@@ -48,6 +48,10 @@ public final class StargazerResource {
             responseCode = "SERVICE_UNAVAILABLE",
             description = "The Github API could not be reached",
             content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    @APIResponse(
+            responseCode = "INTERNAL_SERVER_EROR",
+            description = "Unexpected server error",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     @Retry(delay = 1000, maxRetries = 3)
     @Fallback(fallbackMethod = "getStarNeighboursFallback", skipOn = ClientWebApplicationException.class)
     @Produces(MediaType.APPLICATION_JSON)
